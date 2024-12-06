@@ -1,10 +1,10 @@
 export interface Task {
   id: number;
   title: string;
-  description?: string;
-  date: string;
+  description: string | null;
+  date: string | Date;
   completed: boolean;
-  createdAt: string;
+  createdAt: string | Date;
 }
 
 export type TasksByDate = {

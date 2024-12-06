@@ -1,19 +1,16 @@
 import { type NextRequest } from 'next/server'
-import { db } from "@/server/db";
-import { todos } from "@/server/db/schema";
-import { broadcastTo } from '@/server/db/cable';
+import { allTasks, createTask } from "@/server/services/tasks";
 
 export async function GET(request: NextRequest) {
-  const allTasks = await db.select().from(todos)
+  const tasks = await allTasks();
 
-  return Response.json(allTasks)
+  return Response.json(tasks);
 }
 
 export async function POST(request: NextRequest) {
   const taskParams = await request.json();
-  const task = (await db.insert(todos).values(taskParams).returning())[0];
 
-  broadcastTo("$tasks", {event: "sync_task", task})
+  const task = await createTask(taskParams);
 
   return Response.json(task);
 }
