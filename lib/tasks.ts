@@ -1,6 +1,7 @@
 import { Task, TasksByDate } from './types';
-import { cable, broadcastTo } from './cable';
+import { cable } from './cable';
 import { tasksActions } from './store';
+import { createTask, updateTask, deleteTask as remoteDeleteTask } from './api';
 
 export function groupTasksByDate(tasks: Task[]): TasksByDate {
   return tasks.reduce((acc: TasksByDate, task) => {
@@ -9,13 +10,14 @@ export function groupTasksByDate(tasks: Task[]): TasksByDate {
       acc[date] = [];
     }
     acc[date].push(task);
+    acc[date].sort((a, b) => a.id - b.id);
     return acc;
   }, {});
 }
 
 export function subscribeToTasks(callback: (tasks: Task[]) => void) {
   const channel = cable.streamFrom('$tasks');
-  channel.on("message", (data) => {
+  channel.on("message", (data: any) => {
     if (data.event === 'sync_task') {
       tasksActions.syncTask(data.task);
     }
@@ -30,23 +32,19 @@ export function subscribeToTasks(callback: (tasks: Task[]) => void) {
   };
 }
 
-export async function addTask(task: Omit<Task, 'id' | 'createdAt'>): Promise<void> {
-  const newTask = {
-    ...task,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString()
-  };
-  
-  const storedTask = tasksActions.addTask(task);
-  broadcastTo("$tasks", {event: "sync_task", task: storedTask})
+export async function addTask(task: Partial<Task>): Promise<void> {
+  const createdTask = await createTask(task);
+
+  tasksActions.syncTask(createdTask);
 }
 
-export async function toggleTaskCompletion(taskId: string, currentState: boolean): Promise<void> {
+export async function toggleTaskCompletion(taskId: number, currentState: boolean): Promise<void> {
   tasksActions.toggleTask(taskId);
-  broadcastTo("$tasks", {event: "sync_task", task: tasksActions.getTask(taskId)})
+  const updatedTask = await updateTask(taskId, { completed: !currentState });
+  tasksActions.syncTask(updatedTask);
 }
 
-export async function deleteTask(taskId: string): Promise<void> {
+export async function deleteTask(taskId: number): Promise<void> {
   tasksActions.deleteTask(taskId);
-  broadcastTo("$tasks", {event: "delete_task", id: taskId})
+  await remoteDeleteTask(taskId);
 }

@@ -15,14 +15,20 @@ export function TaskList({ date, tasks }: TaskListProps) {
   const [formattedDate, setFormattedDate] = useState<string>('');
 
   useEffect(() => {
-    setFormattedDate(format(new Date(date), 'EEEE, MMMM d'));
+    try {
+      const parsedDate = new Date(date + 'T00:00:00');
+      setFormattedDate(format(parsedDate, 'EEEE, MMMM d'));
+    } catch (error) {
+      console.error('Invalid date format');
+      setFormattedDate('');
+    }
   }, [date]);
 
-  const handleToggle = async (taskId: string, currentState: boolean) => {
+  const handleToggle = async (taskId: number, currentState: boolean) => {
     await toggleTaskCompletion(taskId, currentState);
   };
 
-  const handleDelete = async (taskId: string) => {
+  const handleDelete = async (taskId: number) => {
     await deleteTask(taskId);
   };
 

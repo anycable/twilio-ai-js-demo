@@ -1,16 +1,13 @@
 import { atom } from 'nanostores';
 import type { Task } from './types';
+import { fetchTasks } from './api';
 
-const STORAGE_KEY = 'daily-planner-tasks';
-
-// Load initial state from localStorage
-const loadInitialState = (): Task[] => {
-  if (typeof window === 'undefined') return [];
+const loadInitialState = async (): Promise<Task[]> => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    const tasks = await fetchTasks();
+    return tasks;
   } catch (error) {
-    console.error('Error loading tasks from localStorage:', error);
+    console.error('Error loading tasks from server:', error);
     return [];
   }
 };
@@ -19,33 +16,14 @@ export const $tasks = atom<Task[]>([]);
 
 // Initialize store after hydration
 if (typeof window !== 'undefined') {
-  // Set initial state in next tick to avoid hydration mismatch
-  Promise.resolve().then(() => {
-    $tasks.set(loadInitialState());
-
-    // Subscribe to changes and update localStorage
-  $tasks.subscribe((tasks) => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-      } catch (error) {
-        console.error('Error saving tasks to localStorage:', error);
-      }
-    });
+  Promise.resolve().then(async () => {
+    const tasks = await loadInitialState();
+    $tasks.set(tasks);
   });
 }
 
 export const tasksActions = {
-  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => {
-    const newTask: Task = {
-      ...task,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    };
-    $tasks.set([...$tasks.get(), newTask]);
-    return newTask;
-  },
-
-  toggleTask: (taskId: string) => {
+  toggleTask: (taskId: number) => {
     const tasks = $tasks.get();
     const updatedTasks = tasks.map((task) =>
       task.id === taskId ? { ...task, completed: !task.completed } : task
@@ -53,7 +31,7 @@ export const tasksActions = {
     $tasks.set(updatedTasks);
   },
 
-  deleteTask: (taskId: string) => {
+  deleteTask: (taskId: number) => {
     const tasks = $tasks.get();
     const updatedTasks = tasks.filter((task) => task.id !== taskId);
     $tasks.set(updatedTasks);
@@ -78,7 +56,7 @@ export const tasksActions = {
     }
   },
 
-  getTask: (id: string) => {
+  getTask: (id: number) => {
     const tasks = $tasks.get();
     const task = tasks.find((t) => t.id === id);
     return task;
