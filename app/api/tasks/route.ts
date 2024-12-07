@@ -1,5 +1,5 @@
 import { type NextRequest } from 'next/server'
-import { allTasks, createTask } from "@/server/services/tasks";
+import { allTasks, createTask } from "@/server/modules/tasks";
 
 export async function GET(request: NextRequest) {
   const tasks = await allTasks();

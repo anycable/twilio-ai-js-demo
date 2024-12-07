@@ -10,7 +10,7 @@ export async function allTasks(): Promise<Task[]> {
 
 export interface TaskParams {
   title: string;
-  description: string;
+  description?: string;
   completed: boolean;
   date: string;
 }

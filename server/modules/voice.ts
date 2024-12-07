@@ -27,3 +27,7 @@ export async function synthesizeAudio(text: string) {
 
   return payload;
 }
+
+export function realtimeConfiguration() {
+
+}

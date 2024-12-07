@@ -5,7 +5,7 @@ import { createTask, updateTask, deleteTask as remoteDeleteTask } from './api';
 
 export function groupTasksByDate(tasks: Task[]): TasksByDate {
   return tasks.reduce((acc: TasksByDate, task) => {
-    const date = task.date;
+    const date = task.date as string;
     if (!acc[date]) {
       acc[date] = [];
     }

@@ -1,5 +1,5 @@
 import { type NextRequest } from 'next/server'
-import { updateTask, deleteTask } from "@/server/services/tasks";
+import { updateTask, deleteTask } from "@/server/modules/tasks";
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const id = parseInt((await params).id);
