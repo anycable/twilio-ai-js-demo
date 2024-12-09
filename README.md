@@ -11,6 +11,8 @@ The app consists of two parts:
 - A Next.js application that provides a web UI for managing ToDo items.
 - A Go application built with AnyCable that handles Twilio Streams and OpenAI interactions in a logic-agnostic way.
 
+![Architecture diagram](./assets/diagram.png)
+
 > [!IMPORTANT]
 > The Go application lives in the original Rails demo repository: [anycable/twilio-ai-demo](https://github.com/anycable/twilio-ai-demo).
 
