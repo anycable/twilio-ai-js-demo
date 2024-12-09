@@ -186,6 +186,7 @@ export default class MediaStreamChannel
     await broadcastCallLog(handle.identifiers!.call_sid, 'system', 'Media stream started');
 
     // transmit greeting message (asynchronously to not block the RPC execution)
+    // IMPORTANT: not gonna work on serverless as is; adding await would be required.
     // NOTE: only if no OpenAI Realtime configured.
     // Otherwise, the assistant will send the greeting
     // after the configuration is done.
@@ -235,6 +236,7 @@ export default class MediaStreamChannel
       else
         message = `You have no tasks for ${period}.`;
 
+      // IMPORTANT: not gonna work on serverless as is; adding await would be required.
       this.transmit_message(handle, message)
     } else {
       this.transmit_message(handle, "I'm sorry, I didn't get that. Please try again.");
