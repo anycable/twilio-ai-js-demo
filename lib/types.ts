@@ -10,3 +10,18 @@ export interface Task {
 export type TasksByDate = {
   [date: string]: Task[];
 };
+
+export interface CallLog {
+  id: string;
+  phoneNumber: string;
+  createdAt: string;
+  entries: CallLogEntry[];
+}
+
+export interface CallLogEntry {
+  id?: string;
+  timestamp: string;
+  role: 'system' | 'assistant' | 'user';
+  type?: 'transcript' | 'function';
+  message: string;
+}

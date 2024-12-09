@@ -1,5 +1,7 @@
 import { type NextRequest } from 'next/server';
 
+import { broadcastCallLog } from '@/server/cable';
+
 const STREAM_URL = process.env.TWILIO_STREAM_CALLBACK || '';
 
 export async function POST(request: NextRequest) {
@@ -13,6 +15,8 @@ export async function POST(request: NextRequest) {
   console.log(`Twilio call status=${status} callSid=${callSid} from=${from} to=${to}`);
 
   if (status === 'ringing' && STREAM_URL) {
+    broadcastCallLog(callSid as string, 'system', 'Ringing', { phoneNumber: from });
+
     const response = new Response(`
       <Response>
         <Connect>

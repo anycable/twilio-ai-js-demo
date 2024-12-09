@@ -21,20 +21,28 @@ The app consists of two parts:
 
 ## Configuration
 
+### Database
+
+This application uses PostgreSQL as a database. You must configure a `DATABASE_URL` env var and run the migrations:
+
+```sh
+npm run migrate
+```
+
 ### Twilio / OpenAI setup
 
-You must obtain a phone number from Twilio as well as your account credentials.
+You must obtain a phone number from Twilio and configure it to send status updates to your application (see below).
 Similarly, generate an API key for OpenAI.
 
 Then, you can store them in the local configuration as follows:
 
 ```txt
 # .env
-TWILIO_PHONE_NUMBER=<your phone number>
-TWILIO_ACCOUNT_SID=<your account SID>
-TWILIO_AUTH_TOKEN=<your auth token>
 OPENAI_API_KEY=<your key>
 ```
+
+The application also works in **DTMF mode** (i.e., you can interact with the app using the phone keypad) when OpenAI Realtime is not available.
+You can explicitly turn Realtime off by setting the `DISABLE_OPENAI_REALTIME=true`.
 
 ## Running the app
 
@@ -73,16 +81,17 @@ ngrok http 8080
 ngrok http 3000
 ```
 
-Use the obtain tunnel hostnames as follows:
+Use the obtained tunnel hostname for AnyCable as follows:
 
 ```sh
 # .env
 TWILIO_STREAM_CALLBACK=https://<your-ngrok-id>.ngrok.io
-TWILIO_STATUS_CALLBACK=https://<your-nextjs-ngrok-id>.ngrok.io
 ```
+
+Don't forget to configure your Twilio phone number to use `https://<your-nextjs-ngrok-id>.ngrok.io` as a webhook for status updates.
 
 Now you can make a phone call to your Twilio number and interact with the app using voice commands.
 
 ## Calls monitoring
 
-Go to the [localhost:3000/phone_calls](http://localhost:3000/phone_calls) to see some live logs of your calls.
+Click on the "Call Logs" button to see call logs in real time.

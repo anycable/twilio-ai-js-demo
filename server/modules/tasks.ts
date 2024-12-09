@@ -1,11 +1,43 @@
 import { Task } from "@/lib/types";
 import { db } from "@/server/db";
-import { eq } from 'drizzle-orm';
+import { eq, between } from 'drizzle-orm';
 import { todos } from "@/server/db/schema";
 import { broadcastTo } from '@/server/cable';
 
 export async function allTasks(): Promise<Task[]> {
   return db.select().from(todos);
+}
+
+export async function tasksForPeriod(period: 'today' | 'tomorrow' | 'week'): Promise<Task[]> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const weekEnd = new Date(today);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+
+  switch (period) {
+    case 'today':
+      return db.select()
+        .from(todos)
+        .where(eq(todos.date, today.toISOString().split('T')[0]));
+
+    case 'tomorrow':
+      return db.select()
+        .from(todos)
+        .where(eq(todos.date, tomorrow.toISOString().split('T')[0]));
+
+    case 'week':
+      return db.select()
+        .from(todos)
+        .where(between(
+          todos.date,
+          today.toISOString().split('T')[0],
+          weekEnd.toISOString().split('T')[0])
+        );
+  }
 }
 
 export interface TaskParams {
