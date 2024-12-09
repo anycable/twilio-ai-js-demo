@@ -183,7 +183,7 @@ export default class MediaStreamChannel
   ) {
     handle.streamFrom(`call/${handle.identifiers?.stream_sid}`);
 
-    broadcastCallLog(handle.identifiers!.call_sid, 'system', 'Media stream started');
+    await broadcastCallLog(handle.identifiers!.call_sid, 'system', 'Media stream started');
 
     // transmit greeting message (asynchronously to not block the RPC execution)
     // NOTE: only if no OpenAI Realtime configured.
@@ -198,7 +198,7 @@ export default class MediaStreamChannel
     handle: ChannelHandle<CableIdentifiers>,
     params: MediaStreamChannelParams | null,
   ) {
-    broadcastCallLog(handle.identifiers!.call_sid, 'system', 'Media stream stopped');
+    await broadcastCallLog(handle.identifiers!.call_sid, 'system', 'Media stream stopped');
   }
 
   async handle_dtmf(
@@ -207,7 +207,7 @@ export default class MediaStreamChannel
     data: DTMFMessage,
   ) {
     console.log(`User pressed ${data.digit}`);
-    broadcastCallLog(handle.identifiers!.call_sid, 'user', 'Pressed #' + data.digit);
+    await broadcastCallLog(handle.identifiers!.call_sid, 'user', 'Pressed #' + data.digit);
 
     let period: "today" | "tomorrow" | "week" | undefined;
 
@@ -224,7 +224,7 @@ export default class MediaStreamChannel
     };
 
     if (period) {
-      broadcastCallLog(handle.identifiers!.call_sid, "assistant", `get_tasks({ period: "${period}" })`, { type: "function" });
+      await broadcastCallLog(handle.identifiers!.call_sid, "assistant", `get_tasks({ period: "${period}" })`, { type: "function" });
 
       const tasks = await this.get_tasks({ period });
 
@@ -261,7 +261,7 @@ export default class MediaStreamChannel
     params: MediaStreamChannelParams | null,
     data: { role: "user" | "assistant"; text: string; id: string },
   ) {
-    broadcastCallLog(handle.identifiers!.call_sid, data.role, data.text, {logId: data.id});
+    await broadcastCallLog(handle.identifiers!.call_sid, data.role, data.text, {logId: data.id});
   }
 
   async handle_function_call(
@@ -271,7 +271,7 @@ export default class MediaStreamChannel
   ) {
     console.log(`Call function ${data.name}(${data.arguments})`);
 
-    broadcastCallLog(handle.identifiers!.call_sid, "assistant", `${data.name}(${data.arguments})`, { type: "function" });
+    await broadcastCallLog(handle.identifiers!.call_sid, "assistant", `${data.name}(${data.arguments})`, { type: "function" });
 
     const args = JSON.parse(data.arguments);
 
@@ -318,10 +318,10 @@ export default class MediaStreamChannel
   ) {
     const base64Audio = await synthesizeAudio(message);
 
-    broadcastCallLog(handle.identifiers!.call_sid, "assistant", message);
+    await broadcastCallLog(handle.identifiers!.call_sid, "assistant", message);
 
     // Send media message to the twilio stream connection
-    broadcastTo(`call/${handle.identifiers?.stream_sid}`, {
+    await broadcastTo(`call/${handle.identifiers?.stream_sid}`, {
       event: "media",
       streamSid: handle.identifiers!.stream_sid,
       media: {

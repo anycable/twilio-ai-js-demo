@@ -50,7 +50,7 @@ export interface TaskParams {
 export async function createTask(params: TaskParams): Promise<Task> {
   const task = (await db.insert(todos).values(params).returning())[0];
 
-  broadcastTo("$tasks", {event: "sync_task", task})
+  await broadcastTo("$tasks", {event: "sync_task", task})
 
   return task;
 }
@@ -67,7 +67,7 @@ export async function updateTask(id: number, params: Partial<TaskParams>): Promi
     throw "Not found"
   }
 
-  broadcastTo("$tasks", {event: "sync_task", task})
+  await broadcastTo("$tasks", {event: "sync_task", task})
 
   return task;
 }
@@ -78,7 +78,7 @@ export async function deleteTask(id: number): Promise<void> {
   if (task) {
     await db.delete(todos).where(eq(todos.id, task.id))
 
-    broadcastTo("$tasks", { event: "delete_task", id: task.id })
+    await broadcastTo("$tasks", { event: "delete_task", id: task.id })
   } else {
     throw "Not found"
   }
